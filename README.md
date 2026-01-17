@@ -1,7 +1,6 @@
-A simple and straightforward mediator and dispatching library for .NET 9+. Flowify helps decouple requests from handlers, promoting clean architecture and separation of concerns. It's a free, lightweight alternative to MediatR.
+Flowify - a simple and straightforward mediator and dispatching library for .NET 9+. Flowify helps decouple requests from handlers, promoting clean architecture and separation of concerns. It's a free, lightweight alternative to MediatR.
 
 <img width="1279" height="694" alt="Flowify" src="https://github.com/user-attachments/assets/458807dd-20e0-45e5-adcf-0c355b7c9279" />
-
 
 ## Features
 
