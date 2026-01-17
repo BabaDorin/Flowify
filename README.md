@@ -4,6 +4,8 @@ A simple and straightforward mediator and dispatching library for .NET 9+. Flowi
 
 <img width="1317" height="709" alt="image" src="https://github.com/user-attachments/assets/b3ed676a-98f7-414c-8c42-902e81de197d" />
 
+<img width="1290" height="700" alt="image" src="https://github.com/user-attachments/assets/d0fb55b8-63f6-495a-a8dd-76182c775fed" />
+
 
 Will be published as NuGet package soon.
 
