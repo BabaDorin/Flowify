@@ -1,3 +1,5 @@
+using Flowify.Contracts;
+
 namespace Flowify.Tests.TestFixtures.Notifications;
 
 public class TestNotificationHandler2 : INotificationHandler<TestNotification>

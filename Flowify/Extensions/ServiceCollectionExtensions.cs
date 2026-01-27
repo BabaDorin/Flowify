@@ -1,53 +1,79 @@
 using System.Reflection;
+using Flowify.Contracts;
+using Flowify.Core;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Flowify;
-
-public static class ServiceCollectionExtensions
+namespace Flowify.Extensions
 {
-    public static IServiceCollection AddFlowify(this IServiceCollection services, params Assembly[] assemblies)
+    public static class ServiceCollectionExtensions
     {
-        if (assemblies == null || assemblies.Length == 0)
+        public static IServiceCollection AddFlowify(this IServiceCollection services, params Assembly[]? assemblies)
         {
-            assemblies = new[] { Assembly.GetCallingAssembly() };
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (assemblies == null || assemblies.Length == 0)
+            {
+                assemblies = new[] { Assembly.GetCallingAssembly() };
+            }
+
+            services.AddTransient<IMediator, Mediator>();
+
+            foreach (var assembly in assemblies)
+            {
+                RegisterHandlers(services, assembly);
+            }
+
+            return services;
         }
 
-        services.AddTransient<IMediator, Mediator>();
-
-        foreach (var assembly in assemblies)
+        private static void RegisterHandlers(IServiceCollection services, Assembly assembly)
         {
-            RegisterHandlers(services, assembly);
+            Type[] types;
+            try
+            {
+                types = assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                types = ex.Types.Where(t => t != null).ToArray()!;
+            }
+
+            var concreteTypes = types
+                .Where(t => t.IsClass && !t.IsAbstract)
+                .ToList();
+
+            foreach (var type in concreteTypes)
+            {
+                RegisterType(services, type);
+            }
         }
 
-        return services;
-    }
-
-    private static void RegisterHandlers(IServiceCollection services, Assembly assembly)
-    {
-        var types = assembly.GetTypes()
-            .Where(t => t.IsClass && !t.IsAbstract)
-            .ToList();
-
-        foreach (var type in types)
+        private static void RegisterType(IServiceCollection services, Type type)
         {
             var interfaces = type.GetInterfaces();
 
-            foreach (var @interface in interfaces)
+            foreach (var entry in interfaces)
             {
-                if (@interface.IsGenericType)
-                {
-                    var genericTypeDefinition = @interface.GetGenericTypeDefinition();
+                if (!entry.IsGenericType) continue;
 
-                    if (genericTypeDefinition == typeof(IRequestHandler<>) || 
-                        genericTypeDefinition == typeof(IRequestHandler<,>))
-                    {
-                        services.AddTransient(@interface, type);
-                    }
-                    else if (genericTypeDefinition == typeof(INotificationHandler<>))
-                    {
-                        services.AddTransient(@interface, type);
-                    }
-                }
+                RegisterConcreteTypeForInterface(services, type, entry);
+            }
+        }
+
+        private static void RegisterConcreteTypeForInterface(IServiceCollection services, Type type, Type entry)
+        {
+            var genericTypeDefinition = entry.GetGenericTypeDefinition();
+
+            if (genericTypeDefinition == typeof(IRequestHandler<>) || genericTypeDefinition == typeof(IRequestHandler<,>))
+            {
+                services.AddTransient(entry, type);
+            }
+            else if (genericTypeDefinition == typeof(INotificationHandler<>))
+            {
+                services.AddTransient(entry, type);
             }
         }
     }

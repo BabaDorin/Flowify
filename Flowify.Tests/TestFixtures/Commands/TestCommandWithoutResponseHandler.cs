@@ -1,3 +1,5 @@
+using Flowify.Contracts;
+
 namespace Flowify.Tests.TestFixtures.Commands;
 
 public class TestCommandWithoutResponseHandler : IRequestHandler<TestCommandWithoutResponse>

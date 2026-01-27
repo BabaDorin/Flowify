@@ -1,4 +1,5 @@
-using Flowify;
+using Flowify.Contracts;
+using Flowify.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Flowify.Examples.CommandWithResponse;

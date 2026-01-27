@@ -1,5 +1,7 @@
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using Flowify.Contracts;
+using Flowify.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Shouldly;
@@ -291,5 +293,90 @@ public class MediatorTests
     public void Mediator_WithNullServiceProvider_ThrowsArgumentNullException()
     {
         Should.Throw<ArgumentNullException>(() => new Mediator(null!));
+    }
+
+    [Fact]
+    public async Task Send_WhenHandlerThrowsException_PropagatesOriginalException()
+    {
+        var mockHandler = new Mock<IRequestHandler<TestCommandWithResponse, int>>();
+        var expectedException = new InvalidOperationException("Handler failed");
+        mockHandler
+            .Setup(h => h.Handle(It.IsAny<TestCommandWithResponse>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(expectedException);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(mockHandler.Object);
+        var serviceProvider = services.BuildServiceProvider();
+        var mediator = new Mediator(serviceProvider);
+
+        var exception = await Should.ThrowAsync<InvalidOperationException>(async () =>
+            await mediator.Send(new TestCommandWithResponse("Test")));
+
+        exception.Message.ShouldBe("Handler failed");
+    }
+
+    [Fact]
+    public async Task Send_WithoutResponse_WhenHandlerThrowsException_PropagatesOriginalException()
+    {
+        var mockHandler = new Mock<IRequestHandler<TestCommandWithoutResponse>>();
+        var expectedException = new ArgumentException("Invalid argument");
+        mockHandler
+            .Setup(h => h.Handle(It.IsAny<TestCommandWithoutResponse>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(expectedException);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(mockHandler.Object);
+        var serviceProvider = services.BuildServiceProvider();
+        var mediator = new Mediator(serviceProvider);
+
+        var exception = await Should.ThrowAsync<ArgumentException>(async () =>
+            await mediator.Send(new TestCommandWithoutResponse("Test")));
+
+        exception.Message.ShouldBe("Invalid argument");
+    }
+
+    [Fact]
+    public async Task Publish_WhenSingleHandlerThrows_PropagatesException()
+    {
+        var mockHandler = new Mock<INotificationHandler<TestNotification>>();
+        var expectedException = new InvalidOperationException("Handler failed");
+        mockHandler
+            .Setup(h => h.Handle(It.IsAny<TestNotification>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(expectedException);
+
+        var services = new ServiceCollection();
+        services.AddSingleton(mockHandler.Object);
+        var serviceProvider = services.BuildServiceProvider();
+        var mediator = new Mediator(serviceProvider);
+
+        var exception = await Should.ThrowAsync<InvalidOperationException>(async () =>
+            await mediator.Publish(new TestNotification("Test")));
+
+        exception.Message.ShouldBe("Handler failed");
+    }
+
+    [Fact]
+    public async Task Publish_WhenMultipleHandlersThrow_ThrowsAggregateException()
+    {
+        var mockHandler1 = new Mock<INotificationHandler<TestNotification>>();
+        var mockHandler2 = new Mock<INotificationHandler<TestNotification>>();
+
+        mockHandler1
+            .Setup(h => h.Handle(It.IsAny<TestNotification>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Handler 1 failed"));
+        mockHandler2
+            .Setup(h => h.Handle(It.IsAny<TestNotification>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ArgumentException("Handler 2 failed"));
+
+        var services = new ServiceCollection();
+        services.AddSingleton(mockHandler1.Object);
+        services.AddSingleton(mockHandler2.Object);
+        var serviceProvider = services.BuildServiceProvider();
+        var mediator = new Mediator(serviceProvider);
+
+        var exception = await Should.ThrowAsync<AggregateException>(async () =>
+            await mediator.Publish(new TestNotification("Test")));
+
+        exception.InnerExceptions.Count.ShouldBe(2);
     }
 }

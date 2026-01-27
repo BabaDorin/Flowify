@@ -1,7 +1,8 @@
-namespace Flowify;
-
-public interface INotificationHandler<in TNotification>
-    where TNotification : INotification
+namespace Flowify.Contracts
 {
-    Task Handle(TNotification notification, CancellationToken cancellationToken);
+    public interface INotificationHandler<in TNotification>
+        where TNotification : INotification
+    {
+        Task Handle(TNotification notification, CancellationToken cancellationToken);
+    }
 }

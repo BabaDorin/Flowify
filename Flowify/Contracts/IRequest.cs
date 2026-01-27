@@ -1,5 +1,6 @@
-namespace Flowify;
-
-public interface IRequest
+namespace Flowify.Contracts
 {
+    public interface IRequest
+    {
+    }
 }

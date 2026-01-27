@@ -1,5 +1,6 @@
-namespace Flowify;
-
-public interface IRequest<out TResponse>
+namespace Flowify.Contracts
 {
+    public interface IRequest<out TResponse>
+    {
+    }
 }

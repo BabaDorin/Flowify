@@ -1,5 +1,6 @@
-namespace Flowify;
-
-public interface INotification
+namespace Flowify.Contracts
 {
+    public interface INotification
+    {
+    }
 }

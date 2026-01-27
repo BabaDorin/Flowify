@@ -1,3 +1,5 @@
+using Flowify.Contracts;
+
 namespace Flowify.Tests.TestFixtures.Queries;
 
 public class TestQueryHandler : IRequestHandler<TestQuery, string>
