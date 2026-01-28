@@ -7,7 +7,7 @@
         <Nullable>enable</Nullable>
 
         <PackageId>Flowify</PackageId>
-        <Version>0.5.2</Version>
+        <Version>0.5.3</Version>
         <Authors>Dorin Baba</Authors>
         <Company>SunriseWorks</Company>
 
