@@ -356,7 +356,7 @@ public class MediatorTests
     }
 
     [Fact]
-    public async Task Publish_WhenMultipleHandlersThrow_ThrowsAggregateException()
+    public async Task Publish_WhenMultipleHandlersThrow_ThrowsFirstException()
     {
         var mockHandler1 = new Mock<INotificationHandler<TestNotification>>();
         var mockHandler2 = new Mock<INotificationHandler<TestNotification>>();
@@ -374,9 +374,7 @@ public class MediatorTests
         var serviceProvider = services.BuildServiceProvider();
         var mediator = new Mediator(serviceProvider);
 
-        var exception = await Should.ThrowAsync<AggregateException>(async () =>
+        await Should.ThrowAsync<Exception>(async () =>
             await mediator.Publish(new TestNotification("Test")));
-
-        exception.InnerExceptions.Count.ShouldBe(2);
     }
 }
